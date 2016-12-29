@@ -27,10 +27,34 @@
             <kind>1</kind>
             <string>///Create
 
-var _distance_limit = 400;
+var _ortho          = true;
+var _distance_limit = 280;
+debug = true;
+
+mouse_over_instance = noone;
+mouse_over_node     = noone;
+mouse_down_node     = noone;
+mouse_release_node  = noone;
+
+if ( room == rm_grid_test ) {
+    
+    var _grid_size = 48;
+    
+    for( var _y = _grid_size/2; _y &lt; room_height; _y += 48 ) {
+        for( var _x = _grid_size/2; _x &lt; room_width; _x += 48 ) {
+            if ( !position_meeting( _x, _y, obj_block ) ) instance_create( _x, _y, obj_node );
+        }
+    }
+    
+    if ( _ortho ) var _distance_limit = sqrt(2) * _grid_size else var _distance_limit = _grid_size;
+}
+
+//Create empty path list
+lst_path = ds_list_create();
 
 //Build node list
 lst_nodes = ds_list_create();
+
 var _size = instance_number( obj_node );
 for( var _i = 0; _i &lt; _size; _i++ ) {
     var _inst = instance_find( obj_node, _i );
@@ -66,7 +90,7 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
         
         var _dist = point_distance( _i_x, _i_y, _j_x, _j_y );
         
-        if ( _dist &lt; _distance_limit ) and ( !collision_line( _i_x, _i_y, _j_x, _j_y, obj_block, true, false ) ) {
+        if ( _dist &lt;= _distance_limit ) and ( !collision_line( _i_x, _i_y, _j_x, _j_y, obj_block, true, false ) ) {
             
             var _map = ds_map_create();
             _map[? "i"  ]            = _i;
@@ -76,9 +100,10 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
             _map[? "jx" ]            = _j_x;
             _map[? "jy" ]            = _j_y;
             _map[? "distance" ]      = _dist;
-            _map[? "sector centre" ] = 0;
-            _map[? "sector min" ]    = 0;
-            _map[? "sector max" ]    = 0;
+            _map[? "sector left" ]   = _j_x;
+            _map[? "sector top" ]    = _j_y;
+            _map[? "sector right" ]  = _j_x;
+            _map[? "sector bottom" ] = _j_y;
             ds_map_add_list( _map, "floodfill", ds_list_create() );
             
             ds_list_add( _i_list, _map );
@@ -92,9 +117,10 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
             _map[? "jx" ]            = _i_x;
             _map[? "jy" ]            = _i_y;
             _map[? "distance" ]      = _dist;
-            _map[? "sector centre" ] = 0;
-            _map[? "sector min" ]    = 0;
-            _map[? "sector max" ]    = 0;
+            _map[? "sector left" ]   = _i_x;
+            _map[? "sector top" ]    = _i_y;
+            _map[? "sector right" ]  = _i_x;
+            _map[? "sector bottom" ] = _i_y;
             ds_map_add_list( _map, "floodfill", ds_list_create() );
             
             ds_list_add( _j_list, _map );
@@ -212,10 +238,6 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
         var _j_x = _j_map[? "jx" ];
         var _j_y = _j_map[? "jy" ];
         
-        var _sector_centre = point_direction( _i_x, _i_y, _j_x, _j_y );
-        var _sector_min =  360;
-        var _sector_max = -360;
-        
         var _floodfill = _j_map[? "floodfill" ];
         var _floodfill_size = ds_list_size( _floodfill );
         for( var _k = 0; _k &lt; _floodfill_size; _k++ ) {
@@ -226,17 +248,14 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
             var _k_x = _k_map[? "x" ];
             var _k_y = _k_map[? "y" ];
             
-            var _dir = point_direction( _j_x, _j_y, _k_x, _k_y );
-            var _diff = angle_difference( _dir, _sector_centre );
-            
-            if ( _diff &lt; _sector_min ) _sector_min = _diff;
-            if ( _diff &gt; _sector_max ) _sector_max = _diff;
+            _j_map[? "sector left" ]   = min( _j_map[? "sector left" ]  , _k_x );
+            _j_map[? "sector top" ]    = min( _j_map[? "sector top" ]   , _k_y );
+            _j_map[? "sector right" ]  = max( _j_map[? "sector right" ] , _k_x );
+            _j_map[? "sector bottom" ] = max( _j_map[? "sector bottom" ], _k_y );
             
         }
         
-        _j_map[? "sector centre" ] = _sector_centre;
-        _j_map[? "sector min" ]    = _sector_min;
-        _j_map[? "sector max" ]    = _sector_max;
+        if ( !debug ) ds_map_delete( _j_map, "floodfill" );
         
     }
     
@@ -244,7 +263,128 @@ for( var _i = 0; _i &lt; _size; _i++ ) {
 
 ds_map_destroy( _map_visited );
 ds_list_destroy( _lst_to_visit );
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="3" enumb="0">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>///Step
 
+mouse_over_instance = instance_nearest( mouse_x, mouse_y, obj_node );
+
+if ( point_distance( mouse_x, mouse_y, mouse_over_instance.x, mouse_over_instance.y ) &lt;= 5 ) {
+    
+    mouse_over_node = mouse_over_instance.node;
+    
+    if ( mouse_check_button_pressed( mb_left ) ) mouse_down_node = mouse_over_node;
+    if ( mouse_check_button_released( mb_left ) ) mouse_released_node = mouse_over_node;
+    
+} else {
+    
+    mouse_over_node = noone;
+    mouse_released_node = noone;
+
+}
+
+if ( mouse_down_node != noone ) and ( mouse_released_node != noone ) {
+    
+    var _start_node = mouse_down_node;
+    var _end_node = mouse_released_node;
+    ds_list_clear( lst_path );
+    
+    var _end_map = lst_nodes[| _end_node ];
+    var _end_x = _end_map[? "x" ];
+    var _end_y = _end_map[? "y" ];
+    
+    var _map_visited = ds_map_create();
+    var _lst_to_visit = ds_list_create();
+    
+    var _time = get_timer();
+    
+    var _map = ds_map_create();
+    _map[? "distance to origin" ] = 0;
+    _map[? "previous node" ]      = noone;
+    ds_map_add_map( _map_visited, _start_node, _map );
+    ds_list_add( _lst_to_visit, _start_node );
+    
+    //While we still have nodes to visit
+    while( !ds_list_empty( _lst_to_visit ) ) {
+        
+        var _n = _lst_to_visit[| 0 ];
+        ds_list_delete( _lst_to_visit, 0 );
+         
+        var _n_map       = lst_nodes[| _n ];
+        var _n_visit_map = _map_visited[? _n ];
+        
+        var _n_distance_to_origin = _n_visit_map[? "distance to origin" ];
+        
+        var _arcs = _n_map[? "arcs" ];
+        var _arcs_size = ds_list_size( _arcs );
+        for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
+            
+            var _j_map = _arcs[| _j ];
+            
+            if ( !point_in_rectangle( _end_x, _end_y, _j_map[? "sector left" ], _j_map[? "sector top" ], _j_map[? "sector right" ], _j_map[? "sector bottom" ] ) ) continue;
+            
+            var _j_distance = _j_map[? "distance" ]
+            var _j_index    = _j_map[? "j" ];
+            var _j_visit_map = _map_visited[? _j_index ];
+            
+            if ( is_undefined( _j_visit_map ) ) {
+                
+                var _map = ds_map_create();
+                _map[? "distance to origin" ] = _n_distance_to_origin + _j_distance;
+                _map[? "previous node" ] = _n;
+                ds_map_add_map( _map_visited, _j_index, _map );
+                
+                ds_list_add( _lst_to_visit, _j_index );
+                
+            } else {
+                
+                if ( _j_visit_map[? "distance to origin" ] &gt; _n_distance_to_origin + _j_distance ) {
+                    
+                    _j_visit_map[? "distance to origin" ] = _n_distance_to_origin + _j_distance;
+                    _j_visit_map[? "previous node" ] = _n;
+                    
+                    ds_list_add( _lst_to_visit, _j_index );
+                    
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    var _node = _end_node;
+    while( _node != _start_node ) {
+        ds_list_insert( lst_path, 0, _node );
+        var _node_map = _map_visited[? _node ];
+        _node = _node_map[? "previous node" ];
+    }
+    ds_list_insert( lst_path, 0, _node );
+    
+    ds_map_destroy( _map_visited );
+    ds_list_destroy( _lst_to_visit );
+    
+}
 </string>
           </argument>
         </arguments>
@@ -269,12 +409,11 @@ ds_list_destroy( _lst_to_visit );
             <kind>1</kind>
             <string>///Draw
 
-var _nearest_node = instance_nearest( mouse_x, mouse_y, obj_node );
-if ( point_distance( mouse_x, mouse_y, _nearest_node.x, _nearest_node.y ) &gt; 10 ) _nearest_node = noone;
-
-if ( instance_exists( _nearest_node ) ) {
+if ( mouse_over_node != noone ) {
     
-    var _i_map = lst_nodes[| _nearest_node.node ];
+    var _alpha = 1;
+    
+    var _i_map = lst_nodes[| mouse_over_node ];
     var _i_x   = _i_map[? "x" ];
     var _i_y   = _i_map[? "y" ];
     
@@ -282,73 +421,129 @@ if ( instance_exists( _nearest_node ) ) {
     var _arcs_size = ds_list_size( _arcs_list );
     for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
         
-        draw_set_colour( make_colour_hsv( 255 * _j / _arcs_size, 220, 200 ) );
+        draw_set_colour( make_colour_hsv( 255 * _j / _arcs_size, 220, 255 ) );
         var _j_map = _arcs_list[| _j ];
         var _j_x   = _j_map[? "jx" ];
         var _j_y   = _j_map[? "jy" ];
         
+        draw_set_alpha( _alpha );
         draw_line( _i_x, _i_y, _j_x, _j_y );
-    
-        var _floodfill_list = _j_map[? "floodfill" ];
-        var _floodfill_size = ds_list_size( _floodfill_list );
-        for( var _k = 0; _k &lt; _floodfill_size; _k++ ) {
-            
-            var _k_node = _floodfill_list[| _k ];
-            var _k_map = lst_nodes[| _k_node ];
-            draw_line( _j_x, _j_y, _k_map[? "x" ], _k_map[? "y" ] );
-            draw_sprite_ext( spr_node, 0, _k_map[? "x" ], _k_map[? "y" ], 1, 1, 0, draw_get_colour(), 1 );
-            
-            
+        
+        if ( debug ) {
+            var _floodfill_list = _j_map[? "floodfill" ];
+            var _floodfill_size = ds_list_size( _floodfill_list );
+            for( var _k = 0; _k &lt; _floodfill_size; _k++ ) {
+                
+                var _k_node = _floodfill_list[| _k ];
+                var _k_map = lst_nodes[| _k_node ];
+                //if ( room != rm_grid_test ) draw_line( _j_x, _j_y, _k_map[? "x" ], _k_map[? "y" ] );
+                draw_sprite_ext( spr_node, 1, _k_map[? "x" ], _k_map[? "y" ], 1, 1, 0, draw_get_colour(), _alpha );
+                
+            }
         }
         
-        var _dir = _j_map[? "sector centre" ];
-        var _dir_min = _j_map[? "sector min" ];
-        var _dir_max = _j_map[? "sector max" ];
-        
-        if ( _dir_min != 360 ) and ( _dir_max != -360 ) {
-            
-            var _dir_centre = mean( _dir + _dir_min, _dir + _dir_max );
-            
-            var _ax = _j_x;
-            var _ay = _j_y;
-            var _bx = _ax + lengthdir_x( 10000, _dir_centre );
-            var _by = _ay + lengthdir_y( 10000, _dir_centre );
-            var _min_x = _ax + lengthdir_x( 10000, _dir + _dir_min - 0.5 );
-            var _min_y = _ay + lengthdir_y( 10000, _dir + _dir_min - 0.5);
-            var _max_x = _ax + lengthdir_x( 10000, _dir + _dir_max + 0.5 );
-            var _max_y = _ay + lengthdir_y( 10000, _dir + _dir_max + 0.5 );
-            
-            draw_set_alpha( 0.2 );
-            draw_triangle( _ax, _ay, _bx, _by, _max_x, _max_y, false );
-            draw_triangle( _ax, _ay, _bx, _by, _min_x, _min_y, false );
-            
-        }
-        
+        var _left   = _j_map[? "sector left" ]   - 4;
+        var _top    = _j_map[? "sector top" ]    - 4;
+        var _right  = _j_map[? "sector right" ]  + 4;
+        var _bottom = _j_map[? "sector bottom" ] + 4;
+        draw_set_alpha( 0.2 * _alpha );
+        draw_rectangle( _left, _top, _right, _bottom, false );
         draw_set_alpha( 1 );
         
-        draw_sprite_ext( spr_node, 0, _j_x, _j_y, 1, 1, 0, draw_get_colour(), 1 );
-        draw_set_colour( c_black );
+    }
+    
+    for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
+        
+        draw_set_colour( make_colour_hsv( 255 * _j / _arcs_size, 220, 255 ) );
+        var _j_map = _arcs_list[| _j ];
+        var _left   = _j_map[? "sector left" ]   - 4;
+        var _top    = _j_map[? "sector top" ]    - 4;
+        var _right  = _j_map[? "sector right" ]  + 4;
+        var _bottom = _j_map[? "sector bottom" ] + 4;
+        
+        draw_set_alpha( _alpha );
+        draw_rectangle( _left, _top, _right, _bottom, true );
+        draw_set_alpha( 1 );
+    
+    }
+    
+    for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
+        
+        var _j_map = _arcs_list[| _j ];
+        var _j_x   = _j_map[? "jx" ];
+        var _j_y   = _j_map[? "jy" ];
+        draw_sprite_ext( spr_node, 1, _j_x, _j_y, 2, 2, 0, make_colour_hsv( 255 * _j / _arcs_size, 220, 255 ), _alpha );
         
     }
+    
+    draw_set_colour( c_black );
+    draw_text( _i_x + 10, _i_y - 15, mouse_over_node );
     
 } else {
     
-    var _size = ds_list_size( lst_nodes );
-    for( var _i = 0; _i &lt; _size; _i++ ) {
+    if ( room != rm_grid_test ) {
         
-        var _i_map  = lst_nodes[| _i ];
-        var _i_list = _i_map[? "arcs" ];
-        
-        var _arcs_size = ds_list_size( _i_list );
-        for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
+        var _size = ds_list_size( lst_nodes );
+        for( var _i = 0; _i &lt; _size; _i++ ) {
             
-            var _j_map = _i_list[| _j ];
-            draw_arrow( _j_map[? "ix" ], _j_map[? "iy" ], _j_map[? "jx" ], _j_map[? "jy" ], 10 );
+            var _i_map  = lst_nodes[| _i ];
+            var _i_list = _i_map[? "arcs" ];
+            
+            var _arcs_size = ds_list_size( _i_list );
+            for( var _j = 0; _j &lt; _arcs_size; _j++ ) {
+                
+                var _j_map = _i_list[| _j ];
+                if ( _j_map[? "j" ] &lt;= _i ) continue;
+                draw_line( _j_map[? "ix" ], _j_map[? "iy" ], _j_map[? "jx" ], _j_map[? "jy" ] );
+                
+            }
             
         }
         
     }
     
+}
+    
+var _size = ds_list_size( lst_path );
+if ( _size &gt; 0 ) {
+    
+    var _map = lst_path[| 0 ];
+    var _ax = _map[? "x" ];
+    var _ay = _map[? "y" ];
+    var _bx = 0;
+    var _by = 0;
+    
+    draw_sprite_ext( spr_node, 0, _ax, _ay, 1.5, 1.5, 0, c_black, 1 );
+    
+    for( var _i = 1; _i &lt; _size; _i++ ) {
+        
+        _bx = _ax;
+        _by = _ay;
+        
+        var _map = lst_path[| _i ];
+        var _ax = _map[? "x" ];
+        var _ay = _map[? "y" ];
+        
+        draw_line_width( _ax, _ay, _bx, _by, 5 );
+        draw_arrow( _bx, _by, _ax, _ay, 20 );
+        
+    }
+    
+    draw_sprite_ext( spr_node, 0, _ax, _ay, 1.5, 1.5, 0, c_black, 1 );
+    
+}
+
+if ( mouse_check_button( mb_left ) ) {
+    if ( mouse_down_node != noone ) {
+        
+        var _map = lst_nodes[| mouse_down_node ];
+        var _x = _map[? "x" ];
+        var _y = _map[? "y" ];
+        
+        draw_line_width( _x, _y, mouse_x, mouse_y, 5 );
+        draw_arrow( _x, _y, mouse_x, mouse_y, 20 );
+        
+    }
 }
 </string>
           </argument>

@@ -17,7 +17,8 @@
     <object>objects\obj_block</object>
   </objects>
   <rooms name="rooms">
-    <room>rooms\rm_main</room>
+    <room>rooms\rm_freeform_test</room>
+    <room>rooms\rm_grid_test</room>
   </rooms>
   <help>
     <rtf>help.rtf</rtf>
