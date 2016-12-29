@@ -96,6 +96,80 @@ if ( keyboard_check_pressed( vk_space ) ) {
     ds_list_clear( lst_regions );
     regions_total = 0;
     
+    /*
+    //Vertical segmentation
+    for( var _x = 0; _x &lt; grid_width; _x++ ) {
+        
+        for( var _y = 0; _y &lt; grid_height; _y++ ) {
+            
+            if ( grd_blocks[# _x, _y ] == 1 ) continue;
+            
+            if ( _y != 0 ) and ( grd_blocks[# _x, _y - 1 ] == 0 ) {
+                
+                var _region = grd_regions[# _x, _y - 1 ];
+                
+                if ( _region != 0 ) {
+                    
+                    grd_regions[# _x, _y ] = _region;
+                    var _map = map_regions[? _region ];
+                    _map[? "bottom" ] = _y;
+                    
+                }
+                
+            } else {
+                
+                regions_total++;
+                grd_regions[# _x, _y ] = regions_total;
+                
+                var _map = ds_map_create();
+                ds_map_add_map( map_regions, regions_total, _map );
+                _map[? "left"   ] = _x;
+                _map[? "top"    ] = _y;
+                _map[? "right"  ] = _x;
+                _map[? "bottom" ] = _y;
+                
+            }
+            
+        }
+        
+    }
+    
+    for( var _i = 0; _i &lt;= regions_total; _i++ ) {
+        
+        var _i_map = ds_map_find_value( map_regions, _i );
+        if ( is_undefined( _i_map ) ) continue;
+        
+        var _i_top    = _i_map[? "top"    ];
+        var _i_bottom = _i_map[? "bottom" ];
+        var _i_right  = _i_map[? "right"  ] + 1;
+        
+        for( var _j = _i + 1; _j &lt;= regions_total; _j++ ) {
+            
+            var _j_map = ds_map_find_value( map_regions, _j );
+            if ( is_undefined( _j_map ) ) continue;
+        
+            var _j_left   = _j_map[? "left"  ];
+            var _j_right  = _j_map[? "right" ];
+            var _j_top    = _j_map[? "top"   ];
+            var _j_bottom = _j_map[? "bottom" ];
+            
+            if ( _i_top == _j_top ) and ( _i_bottom == _j_bottom ) and ( _i_right == _j_left ) {
+                
+                ds_grid_set_region( grd_regions,   _j_left, _j_top, _j_right, _j_bottom,   _i );
+                
+                _i_map[? "right" ] = _j_right;
+                _i_right = _j_right + 1;
+                
+                ds_map_delete( map_regions, _j );
+                
+            }
+            
+        }
+        
+    }
+    */
+    
+    //Horizontal segmentation
     for( var _y = 0; _y &lt; grid_height; _y++ ) {
         
         for( var _x = 0; _x &lt; grid_width; _x++ ) {
@@ -166,6 +240,8 @@ if ( keyboard_check_pressed( vk_space ) ) {
         
     }
     
+    
+    //Clean up
     regions_total = 0;
     ds_list_add( lst_regions, undefined );
     
@@ -209,10 +285,6 @@ if ( keyboard_check_pressed( vk_space ) ) {
           <argument>
             <kind>1</kind>
             <string>///Draw
-
-if ( point_in_rectangle( mouse_grid_x, mouse_grid_y,   0, 0, grid_width - 1, grid_height - 1 ) ) {
-    draw_text( 5, 5, grd_regions[# mouse_grid_x, mouse_grid_y ] );
-}
 
 if ( regions_total &gt; 0 ) {
     
