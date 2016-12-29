@@ -477,7 +477,6 @@ if ( mouse_over_node != noone ) {
     }
     
     draw_set_colour( c_black );
-    draw_text( _i_x + 10, _i_y - 15, mouse_over_node );
     
 } else {
     
