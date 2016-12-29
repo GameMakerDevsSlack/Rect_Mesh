@@ -289,7 +289,7 @@ ds_list_destroy( _lst_to_visit );
 
 mouse_over_instance = instance_nearest( mouse_x, mouse_y, obj_node );
 
-if ( point_distance( mouse_x, mouse_y, mouse_over_instance.x, mouse_over_instance.y ) &lt;= 5 ) {
+if ( point_distance( mouse_x, mouse_y, mouse_over_instance.x, mouse_over_instance.y ) &lt; 10 ) {
     
     mouse_over_node = mouse_over_instance.node;
     
@@ -315,8 +315,6 @@ if ( mouse_down_node != noone ) and ( mouse_released_node != noone ) {
     
     var _map_visited = ds_map_create();
     var _lst_to_visit = ds_list_create();
-    
-    var _time = get_timer();
     
     var _map = ds_map_create();
     _map[? "distance to origin" ] = 0;
